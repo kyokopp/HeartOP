@@ -27,32 +27,31 @@ time_t getUnixTimestamp() {
   time(&now);
   return now;
 }
+
 String getFormattedTime() {
   time_t now;
   struct tm timeinfo;
   time(&now);
   localtime_r(&now, &timeinfo);
 
-  char buffer[9]; // "HH:MM:SS\0"
+  char buffer[9];
   strftime(buffer, sizeof(buffer), "%H:%M:%S", &timeinfo);
   return String(buffer);
 }
 
-//sync da clocka
 bool isTimeSynced() {
   time_t now;
   time(&now);
-  return now > 1000000000; 
+  return now > 1000000000;
 }
 
-//led colors
+// CHANGED: Function now writes directly to the assigned PWM channels (0, 1, 2)
 void setLEDColor(int r, int g, int b) {
-  ledcWrite(LED_R, r);
-  ledcWrite(LED_G, g);
-  ledcWrite(LED_B, b);
+  ledcWrite(0, r);
+  ledcWrite(1, g);
+  ledcWrite(2, b);
 }
 
-// sync the LEDS w the gas levels
 void updateLED() {
   if (gasRaw < 1000) {
     setLEDColor(0, 255, 0);
@@ -63,17 +62,15 @@ void updateLED() {
   }
 }
 
-//display stuff (check if everything looks nice and fits well on the display )
 void updateDisplay() {
   display.clearDisplay();
-
+  
   display.setTextSize(1);
   display.setTextColor(SSD1306_WHITE);
   display.setCursor(0, 0);
   display.print(F("Sinais Vitais"));
   display.drawLine(0, 10, 128, 10, SSD1306_WHITE);
 
-  //wifi n clock
   display.setCursor(72, 0);
   if (WiFi.status() == WL_CONNECTED && isTimeSynced()) {
     display.print(getFormattedTime());
@@ -90,12 +87,10 @@ void updateDisplay() {
     display.print(F("Umid: ")); display.print(humidity, 1); display.print(F(" %"));
   }
 
-  // light converter to % since wokwi cant do s%%%
   int lightPercent = map(lightRaw, 0, 4095, 0, 100);
   display.setCursor(0, 38);
   display.print(F("Luz: ")); display.print(lightPercent); display.print(F(" %"));
 
-  // gas stuff
   display.setCursor(0, 50);
   display.print(F("Gas: ")); display.print(gasRaw);
   display.print(F(" "));
@@ -105,11 +100,12 @@ void updateDisplay() {
 
   display.display();
 }
-//api stuff
+
 void postToAPI() {
   HTTPClient http;
   http.begin(API_URL);
   http.addHeader("Content-Type", "application/json");
+  http.addHeader("X-API-Key", API_KEY);
   http.setTimeout(5000);
 
   int lightPercent = map(lightRaw, 0, 4095, 0, 100);
@@ -120,7 +116,6 @@ void postToAPI() {
   doc["light"]       = lightPercent;
   doc["gas"]         = gasRaw;
 
-  // when sync use unix, else use millis
   if (isTimeSynced()) {
     doc["timestamp"] = (long)getUnixTimestamp();
   } else {
@@ -144,10 +139,16 @@ void postToAPI() {
 
 void setup() {
   Serial.begin(115200);
-  ledcAttach(LED_R, 5000, 8);
-  ledcAttach(LED_G, 5000, 8);
-  ledcAttach(LED_B, 5000, 8);
-  setLEDColor(0, 0, 255); 
+  
+  ledcSetup(0, 5000, 8);
+  ledcSetup(1, 5000, 8);
+  ledcSetup(2, 5000, 8);
+  ledcAttachPin(LED_R, 0);
+  ledcAttachPin(LED_G, 1);z
+  ledcAttachPin(LED_B, 2);
+  
+  setLEDColor(0, 0, 255);
+
   dht.begin();
 
   if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
@@ -155,7 +156,6 @@ void setup() {
     for (;;);
   }
 
-  // booting screen
   display.clearDisplay();
   display.setTextSize(1);
   display.setTextColor(SSD1306_WHITE);
@@ -166,11 +166,11 @@ void setup() {
   display.display();
   delay(1500);
 
-  // wifi
   display.clearDisplay();
   display.setCursor(20, 25);
   display.println(F("Conectando WiFi..."));
   display.display();
+
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
   Serial.print(F("[WiFi] Conectando"));
 
@@ -191,11 +191,11 @@ void setup() {
     display.println(WiFi.localIP().toString());
     display.display();
 
-    // clocka
     display.clearDisplay();
     display.setCursor(20, 25);
     display.println(F("Sincronizando NTP..."));
     display.display();
+
     configTime(UTC_OFFSET_SEC, DST_OFFSET_SEC, NTP_SERVER);
     Serial.print(F("[NTP] Sincronizando"));
 
@@ -249,30 +249,24 @@ void loop() {
 
     if (isnan(temperature) || isnan(humidity)) {
       Serial.println(F("[DHT] Leitura invalida!"));
-      setLEDColor(128, 0, 128); // purple = error
+      setLEDColor(128, 0, 128);
     } else {
       updateLED();
     }
 
     updateDisplay();
+
     Serial.printf("[Sensores] Temp: %.1fC | Umid: %.1f%% | Luz: %d%% | Gas: %d | Hora: %s\n",
                   temperature, humidity, map(lightRaw, 0, 4095, 0, 100), gasRaw,
                   isTimeSynced() ? getFormattedTime().c_str() : "N/A");
   }
 
-  // network stuff
   if (now - lastApiPost >= API_INTERVAL) {
     lastApiPost = now;
 
     if (WiFi.status() != WL_CONNECTED) {
       Serial.println(F("[WiFi] Desconectado. Tentando reconectar..."));
       WiFi.reconnect();
-      delay(500);
-
-      // resync clocka if wifi reconnects 
-      if (WiFi.status() == WL_CONNECTED && !isTimeSynced()) {
-        configTime(UTC_OFFSET_SEC, DST_OFFSET_SEC, NTP_SERVER);
-      }
     } else {
       if (!isnan(temperature) && !isnan(humidity)) {
         postToAPI();
