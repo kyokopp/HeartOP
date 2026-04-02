@@ -1,4 +1,3 @@
-
 #include "config.h"
 
 #include <Wire.h>
@@ -119,7 +118,7 @@ void postToAPI() {
   if (isTimeSynced()) {
     doc["timestamp"] = (long)getUnixTimestamp();
   } else {
-    doc["timestamp"]   = (long)millis();
+    doc["timestamp"] = (long)millis();
     doc["time_synced"] = false;
   }
 
@@ -137,16 +136,16 @@ void postToAPI() {
   http.end();
 }
 
+
 void setup() {
   Serial.begin(115200);
-  
+
   ledcSetup(0, 5000, 8);
   ledcSetup(1, 5000, 8);
   ledcSetup(2, 5000, 8);
   ledcAttachPin(LED_R, 0);
   ledcAttachPin(LED_G, 1);
   ledcAttachPin(LED_B, 2);
-  
   setLEDColor(0, 0, 255);
 
   dht.begin();

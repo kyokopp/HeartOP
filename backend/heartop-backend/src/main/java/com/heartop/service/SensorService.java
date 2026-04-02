@@ -26,7 +26,6 @@ public class SensorService {
     private final SensorRepository sensorRepository;
     private final AlertRepository alertRepository;
 
-    // Thresholds injected from application.properties
     @Value("${heartop.alerts.temperature.max}")
     private float tempMax;
 
@@ -45,9 +44,6 @@ public class SensorService {
     @Value("${heartop.alerts.gas.warning}")
     private int gasWarning;
 
-    // -------------------------------------------------------
-    // Save a new sensor reading and evaluate alerts
-    // -------------------------------------------------------
     @Transactional
     public SensorReading saveReading(SensorReading reading) {
         SensorReading saved = sensorRepository.save(reading);
@@ -58,13 +54,9 @@ public class SensorService {
         return saved;
     }
 
-    // -------------------------------------------------------
-    // Evaluate all thresholds and persist any triggered alerts
-    // -------------------------------------------------------
     private void evaluateAlerts(SensorReading reading) {
         List<Alert> triggered = new ArrayList<>();
 
-        // --- Temperature Alerts ---
         if (reading.getTemperature() > tempMax) {
             triggered.add(Alert.builder()
                     .type(AlertType.TEMPERATURE)
@@ -87,7 +79,6 @@ public class SensorService {
                     .build());
         }
 
-        // --- Humidity Alerts ---
         if (reading.getHumidity() > humidityMax) {
             triggered.add(Alert.builder()
                     .type(AlertType.HUMIDITY)
@@ -110,7 +101,6 @@ public class SensorService {
                     .build());
         }
 
-        // --- Gas Alerts ---
         if (reading.getGas() >= gasDanger) {
             triggered.add(Alert.builder()
                     .type(AlertType.GAS)
@@ -139,45 +129,27 @@ public class SensorService {
         }
     }
 
-    // -------------------------------------------------------
-    // Retrieve all readings
-    // -------------------------------------------------------
     public List<SensorReading> getAllReadings() {
         return sensorRepository.findAll();
     }
 
-    // -------------------------------------------------------
-    // Retrieve latest reading
-    // -------------------------------------------------------
     public Optional<SensorReading> getLatestReading() {
         return sensorRepository.findTopByOrderByReceivedAtDesc();
     }
 
-    // -------------------------------------------------------
-    // Retrieve readings within the last N hours
-    // -------------------------------------------------------
     public List<SensorReading> getHistory(int hours) {
         Instant since = Instant.now().minus(hours, ChronoUnit.HOURS);
         return sensorRepository.findByReceivedAtBetweenOrderByReceivedAtAsc(since, Instant.now());
     }
 
-    // -------------------------------------------------------
-    // Retrieve all alerts
-    // -------------------------------------------------------
     public List<Alert> getAllAlerts() {
         return alertRepository.findAll();
     }
 
-    // -------------------------------------------------------
-    // Retrieve latest 10 alerts
-    // -------------------------------------------------------
     public List<Alert> getLatestAlerts() {
         return alertRepository.findTop10ByOrderByTriggeredAtDesc();
     }
 
-    // -------------------------------------------------------
-    // Retrieve alerts by type
-    // -------------------------------------------------------
     public List<Alert> getAlertsByType(Alert.AlertType type) {
         return alertRepository.findByTypeOrderByTriggeredAtDesc(type);
     }

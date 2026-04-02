@@ -1,0 +1,26 @@
+#pragma once
+
+// WiFi — altere para as credenciais da sua rede
+#define WIFI_SSID     "SUA_REDE_WIFI"
+#define WIFI_PASSWORD "SUA_SENHA_WIFI"
+
+// API — substitua pelo IP local da sua máquina (execute ipconfig para descobrir)
+#define API_URL "http://SEU-IP-LOCAL:8081/api/sensor-data"
+#define API_KEY     "heartop-dev-key-2026"
+
+#define NTP_SERVER     "pool.ntp.org"
+#define UTC_OFFSET_SEC -10800
+#define DST_OFFSET_SEC 0
+
+#define DHTPIN    32
+#define DHTTYPE   DHT22
+#define LDR_PIN   35
+#define MQ_PIN    34
+
+#define LED_R 2
+#define LED_G 4
+#define LED_B 15
+
+#define SCREEN_WIDTH  128
+#define SCREEN_HEIGHT 64
+#define OLED_RESET    -1

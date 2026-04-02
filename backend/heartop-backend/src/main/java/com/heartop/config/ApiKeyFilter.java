@@ -15,7 +15,7 @@ import java.io.IOException;
  * Intercepts every request and validates the X-API-Key header.
  * Returns 401 Unauthorized if the key is missing or invalid.
  */
-@Component
+//@Component
 @Slf4j
 public class ApiKeyFilter extends OncePerRequestFilter {
 
@@ -29,6 +29,11 @@ public class ApiKeyFilter extends OncePerRequestFilter {
                                     HttpServletResponse response,
                                     FilterChain filterChain)
             throws ServletException, IOException {
+
+        if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
+            filterChain.doFilter(request, response);
+            return;
+        }
 
         String requestKey = request.getHeader(API_KEY_HEADER);
 

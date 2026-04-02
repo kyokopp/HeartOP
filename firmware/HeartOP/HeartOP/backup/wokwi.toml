@@ -1,0 +1,19 @@
+[wokwi]
+version = 1
+firmware = "build/HeartOP.ino.bin"
+elf = "build/HeartOP.ino.elf"
+
+[[lib]]
+name = "DHT sensor library"
+
+[[lib]]
+name = "Adafruit Unified Sensor"
+
+[[lib]]
+name = "Adafruit GFX Library"
+
+[[lib]]
+name = "Adafruit SSD1306"
+
+[[lib]]
+name = "ArduinoJson"

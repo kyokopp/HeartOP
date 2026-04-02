@@ -16,12 +16,16 @@ src/config.h
 target/
 
 .env
-*.env
 .env.local
 .env.production
+.env.development
+!.env.example
 
 *.class
 *.jar
+
+**/dist/
+**/.idea/
 
 **/.DS_Store
 Thumbs.db

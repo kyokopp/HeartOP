@@ -1,0 +1,141 @@
+@import "tailwindcss";
+
+@theme {
+  --color-background: #0a0a14;
+  --color-surface: rgba(27, 32, 36, 0.4);
+  --color-primary: #bb86fc;
+  --color-secondary: #22d3ee;
+  --color-textMain: #ffffff;
+  --color-textMuted: #bbc9cf;
+
+  --font-display: "Inter", sans-serif;
+  --font-body: "Inter", sans-serif;
+
+  --animate-pulse-dot: pulse-dot 2s ease-in-out infinite;
+
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(1.2); }
+  }
+}
+
+:root,
+[data-theme="night"] {
+  --theme-bg-overlay: rgba(5, 5, 20, 0.75);
+  --theme-primary: #bb86fc;
+  --theme-secondary: #22d3ee;
+  --theme-text-main: #ffffff;
+  --theme-text-muted: #bbc9cf;
+  --theme-glass-bg: rgba(15, 15, 35, 0.35);
+  --theme-glass-border: rgba(255, 255, 255, 0.08);
+  --theme-glass-highlight: rgba(255, 255, 255, 0.12);
+  --theme-glass-shadow: rgba(0, 0, 0, 0.4);
+}
+
+[data-theme="sunny"] {
+  --theme-bg-overlay: rgba(40, 25, 5, 0.55);
+  --theme-primary: #f59e0b;
+  --theme-secondary: #fbbf24;
+  --theme-text-main: #fffbeb;
+  --theme-text-muted: #d4a574;
+  --theme-glass-bg: rgba(60, 40, 10, 0.3);
+  --theme-glass-border: rgba(255, 220, 130, 0.15);
+  --theme-glass-highlight: rgba(255, 240, 180, 0.18);
+  --theme-glass-shadow: rgba(80, 50, 0, 0.3);
+}
+
+[data-theme="rain"] {
+  --theme-bg-overlay: rgba(10, 15, 25, 0.65);
+  --theme-primary: #60a5fa;
+  --theme-secondary: #38bdf8;
+  --theme-text-main: #e2e8f0;
+  --theme-text-muted: #94a3b8;
+  --theme-glass-bg: rgba(15, 25, 45, 0.35);
+  --theme-glass-border: rgba(148, 163, 184, 0.12);
+  --theme-glass-highlight: rgba(180, 200, 230, 0.14);
+  --theme-glass-shadow: rgba(0, 10, 30, 0.4);
+}
+
+[data-theme="snow"] {
+  --theme-bg-overlay: rgba(200, 215, 230, 0.35);
+  --theme-primary: #7dd3fc;
+  --theme-secondary: #bae6fd;
+  --theme-text-main: #0f172a;
+  --theme-text-muted: #475569;
+  --theme-glass-bg: rgba(255, 255, 255, 0.25);
+  --theme-glass-border: rgba(255, 255, 255, 0.45);
+  --theme-glass-highlight: rgba(255, 255, 255, 0.55);
+  --theme-glass-shadow: rgba(100, 116, 139, 0.2);
+}
+
+[data-theme="sunny-rain"] {
+  --theme-bg-overlay: rgba(30, 30, 15, 0.55);
+  --theme-primary: #facc15;
+  --theme-secondary: #60a5fa;
+  --theme-text-main: #fefce8;
+  --theme-text-muted: #a3a580;
+  --theme-glass-bg: rgba(50, 45, 20, 0.3);
+  --theme-glass-border: rgba(250, 204, 21, 0.15);
+  --theme-glass-highlight: rgba(250, 230, 120, 0.18);
+  --theme-glass-shadow: rgba(60, 50, 0, 0.3);
+}
+
+[data-theme="night-rain"] {
+  --theme-bg-overlay: rgba(5, 8, 22, 0.78);
+  --theme-primary: #818cf8;
+  --theme-secondary: #60a5fa;
+  --theme-text-main: #e2e8f0;
+  --theme-text-muted: #6b7fa8;
+  --theme-glass-bg: rgba(10, 15, 40, 0.4);
+  --theme-glass-border: rgba(129, 140, 248, 0.10);
+  --theme-glass-highlight: rgba(150, 160, 220, 0.12);
+  --theme-glass-shadow: rgba(0, 5, 25, 0.5);
+}
+
+@layer utilities {
+  .glass-panel {
+    background: var(--theme-glass-bg);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    border: 1px solid var(--theme-glass-border);
+    box-shadow:
+      0 8px 32px var(--theme-glass-shadow),
+      inset 0 1px 0 0 var(--theme-glass-highlight),
+      inset 0 -1px 0 0 rgba(0, 0, 0, 0.1);
+    transition:
+      background 0.5s ease,
+      border-color 0.5s ease,
+      box-shadow 0.5s ease;
+  }
+
+  .glass-panel-hover {
+    background: var(--theme-glass-bg);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    border: 1px solid var(--theme-glass-border);
+    box-shadow:
+      0 8px 32px var(--theme-glass-shadow),
+      inset 0 1px 0 0 var(--theme-glass-highlight),
+      inset 0 -1px 0 0 rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+  }
+
+  .glass-panel-hover:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.15);
+    box-shadow:
+      0 8px 40px var(--theme-glass-shadow),
+      inset 0 1px 0 0 rgba(255, 255, 255, 0.2),
+      inset 0 -1px 0 0 rgba(0, 0, 0, 0.1);
+  }
+}
+
+@layer base {
+  body {
+    @apply bg-background text-textMain antialiased overflow-hidden;
+  }
+}
+
+[data-theme] {
+  color: var(--theme-text-main);
+}
