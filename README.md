@@ -16,7 +16,6 @@ O HeartOP captura dados de temperatura, umidade, luminosidade e qualidade do ar 
 
 ## Funcionalidades
 
-- Coleta de dados em tempo real via ESP32 com loop não bloqueante
 - API REST protegida por autenticação via API Key
 - Geração automática de alertas com base em limiares configurados
 - Dashboard interativo com atualização periódica e gráficos históricos
