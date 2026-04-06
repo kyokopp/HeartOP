@@ -1,4 +1,4 @@
-# HeartOP — Sistema de Monitoramento Ambiental Inteligente
+# HeartOP — Sistema de Monitoramento Climático
 
 <p align="center">
   <strong>Estação meteorológica IoT com sensoriamento em tempo real, análise atmosférica e dashboard interativo</strong>
