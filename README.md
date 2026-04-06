@@ -3,11 +3,6 @@
 <p align="center">
   <strong>IoT environmental monitoring system with real-time data acquisition, automated alerts, and an interactive dashboard.</strong>
 </p>
-
-<p align="center">
-  <img src="./docs/dashboard-preview.png" alt="HeartOP Dashboard Preview" width="800"/>
-</p>
-
 ---
 
 ## Architecture
