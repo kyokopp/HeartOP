@@ -1,132 +1,120 @@
-# HeartOP — Sistema de Monitoramento Climático
+HeartOP
 
-<p align="center">
-  <strong>Estação meteorológica IoT com sensoriamento em tempo real, análise atmosférica e dashboard interativo</strong>
-</p>
+Estação meteorológica IoT com sensoriamento em tempo real, alertas automáticos e dashboard interativo.
 
----
+Fluxo da Arquitetura:
+ESP32 (Sensores) ➔ HTTP POST ➔ API Spring Boot ➔ PostgreSQL ➔ React Dashboard
+O HeartOP captura dados de temperatura, umidade, luminosidade e qualidade do ar via ESP32, processa alertas de segurança no backend e exibe o histórico em uma interface web reativa com design glassmorphism.
 
-## Descrição
+✨ Funcionalidades
 
-O **HeartOP** é um sistema de monitoramento ambiental de arquitetura distribuída, projetado para capturar, processar e visualizar dados atmosféricos em tempo real. O projeto integra três camadas fundamentais: um **microcontrolador ESP32** equipado com sensores de temperatura, umidade, luminosidade e qualidade do ar; uma **API RESTful** construída com Spring Boot responsável pela persistência e processamento dos dados; e um **dashboard web** desenvolvido em React que apresenta as informações por meio de uma interface moderna com design responsivo inspirado no paradigma de [glassmorphism](https://developer.mozilla.org/en-US/docs/Web/CSS/backdrop-filter).
+Hardware IoT: Leituras a cada 2 segundos via ESP32, sem delay() bloqueante.
+API Segura: Endpoints REST protegidos por API Key com tratamento global de exceções.
+Alertas Automáticos: Notificações geradas no backend quando limiares de segurança são ultrapassados.
+Dashboard Reativo: Interface com polling otimizado a cada 5 segundos e gráficos históricos.
+Clima Externo: Integração com OpenWeatherMap para contextualizar as leituras locais.
+Tema Dinâmico: Alternância automática de tema baseada nas condições atmosféricas da região.
 
-A comunicação entre as camadas ocorre via protocolo HTTP sobre rede local (LAN), eliminando a dependência de túneis externos. O sistema implementa um mecanismo de **alertas automatizados** que dispara notificações quando os valores sensoriais ultrapassam limiares pré-configurados, além de integrar dados meteorológicos externos da [API OpenWeatherMap](https://openweathermap.org/api) para contextualizar as leituras locais com previsões atmosféricas regionais.
 
----
+📋 Pré-requisitos
 
-## Técnicas Interessantes
+Java 21
+Maven (mvn ou mvnd)
+Node.js 18+
+PostgreSQL 14+
+Conta no Wokwi (para simulação do ESP32)
 
-O código-fonte emprega diversas técnicas relevantes para o desenvolvimento web e embarcado contemporâneo:
 
-- **[`backdrop-filter`](https://developer.mozilla.org/en-US/docs/Web/CSS/backdrop-filter) e Glassmorphism**: Os painéis da interface utilizam a propriedade CSS `backdrop-filter` com `blur()` e `saturate()` para criar o efeito de vidro fosco sobre imagens de fundo dinâmicas, implementado na classe utilitária `glass-panel`.
+🚀 Quick Start
+1. Banco de Dados (PostgreSQL)
+Abra o SQL Shell (psql) e execute:
+sql
+CREATE DATABASE heartop;
+CREATE USER heartop WITH PASSWORD 'heartop';
+GRANT ALL PRIVILEGES ON DATABASE heartop TO heartop;
+\c heartop
+GRANT ALL ON SCHEMA public TO heartop;
 
-- **[CSS Custom Properties](https://developer.mozilla.org/en-US/docs/Web/CSS/Using_CSS_custom_properties) para Tematização Dinâmica**: O sistema de temas utiliza variáveis CSS nativas (`--theme-*`) com seletor `[data-theme]`, permitindo transições suaves entre paletas de cores sem recarregamento da página.
+### 2. Backend (Spring Boot)
+``bash
+cd backend/heartop-backend
+mvn spring-boot:run
+Aguarde a mensagem Started HeartOpApplication in X seconds. A API estará disponível em http://localhost:8081.
+Confirme que está funcionando:
+bashcurl http://localhost:8081/api/health
+# {"status":"UP","service":"HeartOP API"}
 
-- **[`Promise.all()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/all) para Requisições Paralelas**: Tanto o hook `useSensorData` quanto o `useWeather` utilizam `Promise.all()` para executar múltiplas chamadas HTTP simultaneamente, otimizando significativamente o tempo de carregamento dos dados.
+🔐 Autenticação: Todos os endpoints (exceto /api/health) requerem o header:
+X-API-Key: heartop-dev-key-2026
+Para usar uma chave personalizada, defina a variável de ambiente antes de subir:
+powershell$env:API_KEY = "sua-key-aqui"
+mvn spring-boot:run
 
-- **[`localStorage`](https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage) para Persistência de Preferências**: A seleção de cidade e tema do usuário são armazenadas via `localStorage`, garantindo que as configurações persistam entre sessões do navegador.
+3. Frontend (React)
+bashcd app
+cp .env.example .env
+npm install
+npm run dev
+Acesse o dashboard em http://localhost:5173.
 
-- **[`setInterval`](https://developer.mozilla.org/en-US/docs/Web/API/setInterval) com Cleanup Pattern**: Os hooks de dados implementam o padrão de polling com limpeza adequada via `clearInterval` no retorno do `useEffect`, prevenindo [memory leaks](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Memory_management) em componentes desmontados.
+⚙️ Variáveis de ambiente necessárias no .env:
+VITE_API_URL=http://localhost:8081
+VITE_OPENWEATHER_API_KEY=sua-chave-aqui
 
-- **[Debounce Pattern](https://developer.mozilla.org/en-US/docs/Glossary/Debounce)**: A busca de cidades no `Topbar` implementa debounce com `setTimeout` de 150ms para evitar requisições excessivas durante a digitação do usuário.
+4. Firmware (ESP32)
+Abra o arquivo config.h e atualize o IP local da máquina:
+cpp#define API_URL "http://SEU-IP-LOCAL:8081/api/sensor-data"
+Para descobrir seu IP: ipconfig (Windows) ou ip a (Linux/macOS).
+Compile e rode no hardware físico ou na simulação Wokwi. No Serial Monitor, você verá:
+[WiFi] Conectado! IP: ...
+[NTP] Sincronizado! Hora: HH:MM:SS
+[Sensores] Temp: 24.5C | Umid: 60.0% | Luz: 45% | Gas: 1200
+[API] POST enviado. Codigo: 201
+O código 201 confirma que os dados chegaram na API com sucesso.
 
-- **[`@PrePersist`](https://jakarta.ee/specifications/persistence/3.1/) do JPA**: As entidades `SensorReading` e `Alert` utilizam callbacks de ciclo de vida JPA para atribuir timestamps automáticos no momento da persistência, garantindo consistência temporal.
+📡 API Endpoints
+Base URL: http://localhost:8081
+MétodoEndpointDescriçãoPOST/api/sensor-dataRecebe leitura do ESP32GET/api/sensor-dataLista todas as leiturasGET/api/sensor-data/latestLeitura mais recenteGET/api/sensor-data/history?hours=24Histórico das últimas N horasGET/api/alertsÚltimos 10 alertasGET/api/alerts/allTodos os alertasGET/api/alerts/type/GASAlertas filtrados por tipoGET/api/healthStatus da API (sem autenticação)
+Limiares de alerta
+SensorAvisoPerigoTemperatura< 0°C> 35°CUmidade< 20% ou > 80%—Gás (Raw ADC)>= 1000>= 2500
 
-- **[Derived Query Methods](https://docs.spring.io/spring-data/jpa/reference/jpa/query-methods.html) do Spring Data**: Os repositórios utilizam convenções de nomenclatura como `findTopByOrderByReceivedAtDesc()` e `findByReceivedAtBetweenOrderByReceivedAtAsc()` para gerar queries SQL automaticamente a partir dos nomes dos métodos.
-
-- **[`ledcWrite()`](https://docs.espressif.com/projects/arduino-esp32/en/latest/api/ledc.html) do ESP32**: O firmware utiliza a API LEDC (LED Control) do ESP32 para controlar um LED RGB via PWM, fornecendo feedback visual do status do sistema diretamente no hardware.
-
-- **[`configTime()` e NTP](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/system/system_time.html)**: O firmware sincroniza o relógio interno do ESP32 via protocolo NTP (Network Time Protocol), com fallback para `millis()` em caso de falha na sincronização.
-
----
-
-## Tecnologias e Bibliotecas
-
-### Frontend
-
-| Tecnologia | Versão | Descrição |
-|---|---|---|
-| [React](https://react.dev/) | 19.x | Biblioteca para construção de interfaces declarativas |
-| [Vite](https://vite.dev/) | 8.x | Build tool com HMR (Hot Module Replacement) ultrarrápido |
-| [TypeScript](https://www.typescriptlang.org/) | 5.9 | Superset tipado de JavaScript |
-| [Tailwind CSS](https://tailwindcss.com/) | 4.x | Framework CSS utilitário com engine JIT |
-| [Framer Motion](https://motion.dev/) | 12.x | Biblioteca de animações declarativas para React |
-| [Recharts](https://recharts.org/) | 3.x | Biblioteca de gráficos baseada em D3 e componentes React |
-| [Lucide React](https://lucide.dev/) | 1.x | Conjunto de ícones SVG otimizados como componentes React |
-| [React Router](https://reactrouter.com/) | 7.x | Roteamento SPA com suporte a layouts aninhados |
-
-### Backend
-
-| Tecnologia | Versão | Descrição |
-|---|---|---|
-| [Spring Boot](https://spring.io/projects/spring-boot) | 3.2.4 | Framework para aplicações Java com auto-configuração |
-| [Spring Data JPA](https://spring.io/projects/spring-data-jpa) | — | Abstração de persistência com queries derivadas |
-| [PostgreSQL](https://www.postgresql.org/) | 14+ | Sistema gerenciador de banco de dados relacional |
-| [Lombok](https://projectlombok.org/) | 1.18 | Geração automática de boilerplate Java via anotações |
-| [Jakarta Validation](https://jakarta.ee/specifications/bean-validation/) | — | Validação declarativa de beans via anotações `@NotNull` |
-
-### Firmware
-
-| Tecnologia | Descrição |
-|---|---|
-| [ESP32](https://www.espressif.com/en/products/socs/esp32) | Microcontrolador dual-core com Wi-Fi e Bluetooth |
-| [DHT22](https://learn.adafruit.com/dht) | Sensor de temperatura e umidade de alta precisão |
-| [MQ-2/MQ-135](https://www.sparkfun.com/products/9405) | Sensor de qualidade do ar (gases combustíveis) |
-| [SSD1306 OLED](https://learn.adafruit.com/monochrome-oled-breakouts) | Display OLED 128x64 via protocolo I²C |
-| [ArduinoJson](https://arduinojson.org/) | Serialização/deserialização JSON para microcontroladores |
-
-### APIs Externas
-
-| API | Finalidade |
-|---|---|
-| [OpenWeatherMap](https://openweathermap.org/api) | Dados meteorológicos em tempo real e previsões de 5 dias |
-
-### Tipografia
-
-| Fonte | Origem |
-|---|---|
-| [Inter](https://fonts.google.com/specimen/Inter) | Google Fonts — tipografia sans-serif otimizada para interfaces |
-
----
-
-## Estrutura do Projeto
-
-```
+🗂️ Estrutura do Projeto
 HeartOP/
-├── app/                          # Frontend React + Vite
-│   ├── public/                   # Assets estáticos (favicon, ícones SVG)
-│   ├── src/
-│   │   ├── assets/               # Imagens e recursos importáveis
-│   │   ├── components/           # Componentes reutilizáveis da interface
-│   │   │   └── layout/           # Componentes estruturais (Sidebar, Topbar, MainLayout)
-│   │   ├── context/              # Providers do React Context (tema, clima)
-│   │   ├── hooks/                # Custom hooks (polling de sensores, dados meteorológicos)
-│   │   └── pages/                # Páginas da aplicação (Dashboard, Analytics)
-│   └── dist/                     # Build de produção (gerado automaticamente)
+├── app/                          # Frontend React + Vite + TypeScript
+│   ├── public/                   # Assets estáticos
+│   └── src/
+│       ├── components/           # Componentes reutilizáveis
+│       │   └── layout/           # Sidebar, Topbar, MainLayout
+│       ├── context/              # ThemeContext, WeatherContext
+│       ├── hooks/                # useSensorData, useWeather
+│       └── pages/                # Dashboard, Analytics
 ├── backend/
 │   └── heartop-backend/          # API Spring Boot
 │       └── src/main/java/com/heartop/
-│           ├── config/           # Configurações (CORS, filtro de API key, exception handler)
-│           ├── controller/       # Endpoints REST da API
+│           ├── config/           # CORS, ApiKeyFilter, ExceptionHandler
+│           ├── controller/       # Endpoints REST
 │           ├── model/            # Entidades JPA (SensorReading, Alert)
 │           ├── repository/       # Interfaces Spring Data JPA
 │           └── service/          # Lógica de negócio e avaliação de alertas
 ├── firmware/
-│   └── HeartOP/                  # Código-fonte do ESP32 (Arduino)
-├── docs/                         # Documentação auxiliar (diagramas de circuito)
+│   └── HeartOP/                  # Código-fonte ESP32 (Arduino/C++)
+├── docs/                         # Documentação auxiliar
+│   ├── circuit-diagram.png       # Esquema elétrico do protótipo
+│   └── dashboard-preview.png     # Screenshot do dashboard
+├── .env.example                  # Template de variáveis de ambiente
 ├── TUTORIAL.md                   # Guia passo a passo de execução
-├── LICENSE                       # Licença MIT
 └── README.md                     # Este arquivo
-```
 
-- O diretório [components/layout](./app/src/components/layout) contém a arquitetura de layout com sidebar colapsável animada via Framer Motion e topbar com busca de cidades integrada à API de geocodificação.
-- O diretório [hooks](./app/src/hooks) implementa os custom hooks `useSensorData` (polling HTTP para o backend local) e `useWeather` (integração com OpenWeatherMap via geocodificação reversa).
-- O diretório [context](./app/src/context) gerencia o estado global de tema climático (`ThemeContext`) e dados meteorológicos (`WeatherContext`), com alternância automática de tema baseada nas condições atmosféricas da região selecionada.
-- O diretório [config](./backend/heartop-backend/src/main/java/com/heartop/config) contém a configuração de [CORS](https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/CORS), o filtro de autenticação por API key e o tratamento global de exceções para respostas JSON padronizadas.
-- O diretório [docs](./docs) armazena o diagrama de circuito elétrico do protótipo com as conexões dos sensores ao ESP32.
+💻 Tech Stack
+Frontend
+TecnologiaVersãoDescriçãoReact19.xBiblioteca para interfaces declarativasVite8.xBuild tool com HMR ultrarrápidoTypeScript5.9Superset tipado de JavaScriptTailwind CSS4.xFramework CSS utilitárioFramer Motion12.xAnimações declarativasRecharts3.xGráficos baseados em D3React Router7.xRoteamento SPA
+Backend
+TecnologiaVersãoDescriçãoSpring Boot3.2.4Framework Java com auto-configuraçãoSpring Data JPA—Abstração de persistênciaPostgreSQL14+Banco de dados relacionalLombok1.18Geração de boilerplate via anotaçõesJakarta Validation—Validação declarativa de beans
+Firmware
+TecnologiaDescriçãoESP32Microcontrolador dual-core com Wi-FiDHT22Sensor de temperatura e umidadeMQ-2Sensor de qualidade do arLDRSensor de luminosidadeSSD1306 OLEDDisplay 128x64 via I²CArduinoJsonSerialização JSON para microcontroladores
 
----
+👤 Autor
+Desenvolvido por Davi Duarte (@kyokopp) como Projeto Integrador V – B — PUC Goiás, 2026.
 
-## Licença
-
-Este projeto está licenciado sob a [Licença MIT](./LICENSE).
+📄 Licença
+Este projeto está licenciado sob a Licença MIT.
