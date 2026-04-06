@@ -1,120 +1,176 @@
-HeartOP
+# HeartOP
 
-Estação meteorológica IoT com sensoriamento em tempo real, alertas automáticos e dashboard interativo.
+<p align="center">
+  <strong>IoT environmental monitoring system with real-time data acquisition, automated alerts, and an interactive dashboard.</strong>
+</p>
 
-Fluxo da Arquitetura:
-ESP32 (Sensores) ➔ HTTP POST ➔ API Spring Boot ➔ PostgreSQL ➔ React Dashboard
-O HeartOP captura dados de temperatura, umidade, luminosidade e qualidade do ar via ESP32, processa alertas de segurança no backend e exibe o histórico em uma interface web reativa com design glassmorphism.
+<p align="center">
+  <img src="./docs/dashboard-preview.png" alt="HeartOP Dashboard Preview" width="800"/>
+</p>
 
-✨ Funcionalidades
+---
 
-Hardware IoT: Leituras a cada 2 segundos via ESP32, sem delay() bloqueante.
-API Segura: Endpoints REST protegidos por API Key com tratamento global de exceções.
-Alertas Automáticos: Notificações geradas no backend quando limiares de segurança são ultrapassados.
-Dashboard Reativo: Interface com polling otimizado a cada 5 segundos e gráficos históricos.
-Clima Externo: Integração com OpenWeatherMap para contextualizar as leituras locais.
-Tema Dinâmico: Alternância automática de tema baseada nas condições atmosféricas da região.
+## Architecture
 
 
-📋 Pré-requisitos
+ESP32 (Sensors)
+↓ HTTP POST
+Spring Boot API
+↓
+PostgreSQL
+↓
+React Dashboard
 
-Java 21
-Maven (mvn ou mvnd)
-Node.js 18+
-PostgreSQL 14+
-Conta no Wokwi (para simulação do ESP32)
 
+HeartOP collects environmental data (temperature, humidity, luminosity, gas levels) via ESP32, processes alert conditions in a Spring Boot backend, and presents real-time and historical data through a responsive React dashboard.
 
-🚀 Quick Start
-1. Banco de Dados (PostgreSQL)
-Abra o SQL Shell (psql) e execute:
-sql
+---
+
+## Features
+
+- Real-time sensor data acquisition via ESP32 (non-blocking loop)
+- REST API secured with API Key authentication
+- Automated alert generation based on configurable thresholds
+- Interactive dashboard with polling and historical charts
+- Integration with external weather data (OpenWeatherMap)
+- Dynamic UI theme based on atmospheric conditions
+
+---
+
+## Requirements
+
+- Java 21  
+- Maven (`mvn` or `mvnd`)  
+- Node.js 18+  
+- PostgreSQL 14+  
+- Wokwi account (optional, for ESP32 simulation)  
+
+---
+
+## Quick Start
+
+### 1. Database (PostgreSQL)
+
+``sql
 CREATE DATABASE heartop;
 CREATE USER heartop WITH PASSWORD 'heartop';
 GRANT ALL PRIVILEGES ON DATABASE heartop TO heartop;
 \c heartop
 GRANT ALL ON SCHEMA public TO heartop;
-
-### 2. Backend (Spring Boot)
-``bash
+2. Backend (Spring Boot)
 cd backend/heartop-backend
 mvn spring-boot:run
-Aguarde a mensagem Started HeartOpApplication in X seconds. A API estará disponível em http://localhost:8081.
-Confirme que está funcionando:
-bashcurl http://localhost:8081/api/health
-# {"status":"UP","service":"HeartOP API"}
 
-🔐 Autenticação: Todos os endpoints (exceto /api/health) requerem o header:
+API available at:
+
+http://localhost:8081
+
+Test:
+
+curl http://localhost:8081/api/health
+
+Expected response:
+
+{"status":"UP","service":"HeartOP API"}
+
+Authentication (required for all endpoints except /api/health):
+
 X-API-Key: heartop-dev-key-2026
-Para usar uma chave personalizada, defina a variável de ambiente antes de subir:
-powershell$env:API_KEY = "sua-key-aqui"
-mvn spring-boot:run
 
+Custom API key:
+
+# Windows (PowerShell)
+$env:API_KEY="your-key"
+mvn spring-boot:run
 3. Frontend (React)
-bashcd app
+cd app
 cp .env.example .env
 npm install
 npm run dev
-Acesse o dashboard em http://localhost:5173.
 
-⚙️ Variáveis de ambiente necessárias no .env:
+Access the dashboard:
+
+http://localhost:5173
+
+Environment variables (.env):
+
 VITE_API_URL=http://localhost:8081
-VITE_OPENWEATHER_API_KEY=sua-chave-aqui
-
+VITE_OPENWEATHER_API_KEY=your_api_key
 4. Firmware (ESP32)
-Abra o arquivo config.h e atualize o IP local da máquina:
-cpp#define API_URL "http://SEU-IP-LOCAL:8081/api/sensor-data"
-Para descobrir seu IP: ipconfig (Windows) ou ip a (Linux/macOS).
-Compile e rode no hardware físico ou na simulação Wokwi. No Serial Monitor, você verá:
-[WiFi] Conectado! IP: ...
-[NTP] Sincronizado! Hora: HH:MM:SS
-[Sensores] Temp: 24.5C | Umid: 60.0% | Luz: 45% | Gas: 1200
-[API] POST enviado. Codigo: 201
-O código 201 confirma que os dados chegaram na API com sucesso.
 
-📡 API Endpoints
-Base URL: http://localhost:8081
-MétodoEndpointDescriçãoPOST/api/sensor-dataRecebe leitura do ESP32GET/api/sensor-dataLista todas as leiturasGET/api/sensor-data/latestLeitura mais recenteGET/api/sensor-data/history?hours=24Histórico das últimas N horasGET/api/alertsÚltimos 10 alertasGET/api/alerts/allTodos os alertasGET/api/alerts/type/GASAlertas filtrados por tipoGET/api/healthStatus da API (sem autenticação)
-Limiares de alerta
-SensorAvisoPerigoTemperatura< 0°C> 35°CUmidade< 20% ou > 80%—Gás (Raw ADC)>= 1000>= 2500
+Update API_URL in config.h:
 
-🗂️ Estrutura do Projeto
+#define API_URL "http://YOUR-LOCAL-IP:8081/api/sensor-data"
+
+Find your IP:
+
+ipconfig   # Windows
+ip a       # Linux/macOS
+
+Run on hardware or Wokwi.
+
+Expected Serial Monitor output:
+
+[WiFi] Connected
+[NTP] Synced
+[Sensors] Temp: 24.5C | Humidity: 60.0% | Light: 45% | Gas: 1200
+[API] POST sent. Status: 201
+System Verification
+curl http://localhost:8081/api/sensor-data/latest
+
+A valid JSON response confirms end-to-end operation.
+
+API Endpoints
+
+Base URL:
+
+http://localhost:8081
+Method	Endpoint	Description
+POST	/api/sensor-data	Receive sensor data
+GET	/api/sensor-data	List all readings
+GET	/api/sensor-data/latest	Latest reading
+GET	/api/sensor-data/history?hours=24	Historical data
+GET	/api/alerts	Recent alerts
+GET	/api/alerts/all	All alerts
+GET	/api/alerts/type/GAS	Alerts by type
+GET	/api/health	API status
+Alert Thresholds
+Sensor	Warning	Critical
+Temperature	< 0°C	> 35°C
+Humidity	< 20% or > 80%	—
+Gas (ADC)	≥ 1000	≥ 2500
+Project Structure
 HeartOP/
-├── app/                          # Frontend React + Vite + TypeScript
-│   ├── public/                   # Assets estáticos
-│   └── src/
-│       ├── components/           # Componentes reutilizáveis
-│       │   └── layout/           # Sidebar, Topbar, MainLayout
-│       ├── context/              # ThemeContext, WeatherContext
-│       ├── hooks/                # useSensorData, useWeather
-│       └── pages/                # Dashboard, Analytics
-├── backend/
-│   └── heartop-backend/          # API Spring Boot
-│       └── src/main/java/com/heartop/
-│           ├── config/           # CORS, ApiKeyFilter, ExceptionHandler
-│           ├── controller/       # Endpoints REST
-│           ├── model/            # Entidades JPA (SensorReading, Alert)
-│           ├── repository/       # Interfaces Spring Data JPA
-│           └── service/          # Lógica de negócio e avaliação de alertas
-├── firmware/
-│   └── HeartOP/                  # Código-fonte ESP32 (Arduino/C++)
-├── docs/                         # Documentação auxiliar
-│   ├── circuit-diagram.png       # Esquema elétrico do protótipo
-│   └── dashboard-preview.png     # Screenshot do dashboard
-├── .env.example                  # Template de variáveis de ambiente
-├── TUTORIAL.md                   # Guia passo a passo de execução
-└── README.md                     # Este arquivo
-
-💻 Tech Stack
+├── app/                # React frontend
+├── backend/            # Spring Boot API
+├── firmware/           # ESP32 code (Arduino/C++)
+├── docs/               # Diagrams and assets
+├── .env.example        # Environment template
+├── TUTORIAL.md         # Extended setup guide
+└── README.md
+Technology Stack
 Frontend
-TecnologiaVersãoDescriçãoReact19.xBiblioteca para interfaces declarativasVite8.xBuild tool com HMR ultrarrápidoTypeScript5.9Superset tipado de JavaScriptTailwind CSS4.xFramework CSS utilitárioFramer Motion12.xAnimações declarativasRecharts3.xGráficos baseados em D3React Router7.xRoteamento SPA
+React
+TypeScript
+Vite
+Tailwind CSS
+Recharts
+Framer Motion
 Backend
-TecnologiaVersãoDescriçãoSpring Boot3.2.4Framework Java com auto-configuraçãoSpring Data JPA—Abstração de persistênciaPostgreSQL14+Banco de dados relacionalLombok1.18Geração de boilerplate via anotaçõesJakarta Validation—Validação declarativa de beans
+Java 21
+Spring Boot
+Spring Data JPA
+PostgreSQL
 Firmware
-TecnologiaDescriçãoESP32Microcontrolador dual-core com Wi-FiDHT22Sensor de temperatura e umidadeMQ-2Sensor de qualidade do arLDRSensor de luminosidadeSSD1306 OLEDDisplay 128x64 via I²CArduinoJsonSerialização JSON para microcontroladores
+ESP32
+DHT22, MQ-2, LDR
+SSD1306 OLED
+ArduinoJson
+Author
 
-👤 Autor
-Desenvolvido por Davi Duarte (@kyokopp) como Projeto Integrador V – B — PUC Goiás, 2026.
+Davi Duarte
+Project Integrator V – B — PUC Goiás, 2026
 
-📄 Licença
-Este projeto está licenciado sob a Licença MIT.
+License
+
+This project is licensed under the MIT License.
