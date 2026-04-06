@@ -1,32 +1,50 @@
-# HeartOP
+# Project Title: HeartOP
 
-## Overview
+## Arquitetura
+- A arquitetura do projeto é baseada em microserviços.
+- Os componentes principais incluem:
+  - Serviço de autenticação
+  - Serviço de notificações
+  - Banco de dados relacional
 
-HeartOP is an open-source project focused on heart rate optimization and monitoring.
+## Funcionalidades
+- Autenticação de usuários.
+- Envio de notificações em tempo real.
+- Acesso ao histórico de mensagens.
 
-## Features
-- Real-time heart rate data collection
-- Historical data tracking
-- User-friendly interface
+## Pré-requisitos
+- **Python 3.8+**
+- **Node.js 14+**
+- **Banco de dados:** MySQL ou PostgreSQL
 
-## Installation
-To install HeartOP, just clone the repository and run:
+## Execução
+Para executar o projeto localmente, siga os passos abaixo:
 
 ```bash
-# Clone the repository
+# Clone o repositório
 git clone https://github.com/kyokopp/HeartOP.git
-```
 
-## Usage
-To start using HeartOP, follow these steps:
+# Navegue até o diretório do projeto
+cd HeartOP
 
-```bash
-# Run the application
+# Instale as dependências
+pip install -r requirements.txt
+
+# Execute o servidor
 python app.py
 ```
 
-## Contributing
-We welcome contributions! Please read the [contributing guidelines](CONTRIBUTING.md) before making pull requests.
+## API Endpoints
+| Método  | Endpoint                      | Descrição                           |
+|---------|-------------------------------|-------------------------------------|
+| GET     | /api/v1/users                 | Retorna todos os usuários           |
+| POST    | /api/v1/login                 | Faz login de um usuário             |
+| GET     | /api/v1/notifications         | Retorna todas as notificações       |
+| POST    | /api/v1/notifications         | Envia uma nova notificação          |
 
-## License
-HeartOP is licensed under the MIT License.
+## Alert Thresholds
+| Tipo de Alerta       | Limite Inferior | Limite Superior | Ação a Tomar               |
+|----------------------|-----------------|-----------------|----------------------------|
+| Uso de CPU           | 70%             | 90%             | Enviar alerta              |
+| Uso de Memória       | 60%             | 85%             | Iniciar procedimento de limpeza |
+| Tempo de Resposta     | 200ms           | 500ms           | Registrar log e notificar   |
