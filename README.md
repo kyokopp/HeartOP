@@ -1,4 +1,4 @@
-HeartOP
+# HeartOP
 <p align="center">
   <strong>Sistema IoT de monitoramento ambiental com aquisição de dados em tempo real, geração de alertas e dashboard interativo.</strong>
 </p>
@@ -45,7 +45,7 @@ mvn spring-boot:run
 A API estará disponível em http://localhost:8081.
 Teste de funcionamento:
 bashcurl http://localhost:8081/api/health
-# {"status":"UP","service":"HeartOP API"}
+{"status":"UP","service":"HeartOP API"}
 
 Autenticação: Todos os endpoints (exceto /api/health) requerem o header X-API-Key: heartop-dev-key-2026.
 Para utilizar uma chave personalizada:
